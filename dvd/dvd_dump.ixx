@@ -807,6 +807,16 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
         }
     }
 
+    if(dump_mode == DumpMode::DUMP && readable_formats.find(READ_DISC_STRUCTURE_Format::BCA) != readable_formats.end())
+    {
+        std::vector<uint8_t> bca;
+        auto status = cmd_read_disc_structure(*ctx.sptd, bca, ctx.disc_type == DiscType::BLURAY || ctx.disc_type == DiscType::BLURAY_R, 0, 0, READ_DISC_STRUCTURE_Format::BCA, 0);
+        if(status.status_code)
+            LOG("warning: failed to read disc burst cutting area, SCSI ({})", SPTD::StatusMessage(status));
+        else
+            write_vector(std::format("{}.bca", image_prefix), bca);
+    }
+
     // authenticate CSS
     if(dump_mode == DumpMode::DUMP && readable_formats.find(READ_DISC_STRUCTURE_Format::COPYRIGHT) != readable_formats.end())
     {
