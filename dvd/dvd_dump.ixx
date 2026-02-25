@@ -654,6 +654,7 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
             LOG("warning: Blu-ray current profile mismatch, dump will be trimmed to disc filesystem size");
         }
 
+        bool has_bca = false;
         if(!physical_structures.empty())
         {
             // Blu-ray
@@ -662,6 +663,8 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                 auto layer_lengths = get_bluray_layer_lengths(physical_structures.front(), rom);
                 if(!layer_lengths.empty())
                     sectors_count_physical = std::accumulate(layer_lengths.begin(), layer_lengths.end(), (uint32_t)0);
+
+                has_bca = bluray_contains_bca(physical_structures.front(), rom);
             }
             // DVD
             else
@@ -681,6 +684,8 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                     // nintendo discs have first byte 0xFF
                     if(structure[sizeof(CMD_ParameterListHeader)] == 0xFF)
                         nintendo_key = 0;
+
+                    has_bca = layer_descriptor.bca;
                 }
 
                 // XGD physical sector count is only for video partition
@@ -811,6 +816,17 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                     }
                 }
             }
+
+            // get and store the bca
+            if(has_bca && readable_formats.find(READ_DISC_STRUCTURE_Format::BCA) != readable_formats.end())
+            {
+                std::vector<uint8_t> bca;
+                auto status = cmd_read_disc_structure(*ctx.sptd, bca, ctx.disc_type == DiscType::BLURAY || ctx.disc_type == DiscType::BLURAY_R, 0, 0, READ_DISC_STRUCTURE_Format::BCA, 0);
+                if(status.status_code)
+                    LOG("warning: failed to read disc burst cutting area, SCSI ({})", SPTD::StatusMessage(status));
+                else
+                    write_vector(std::format("{}.bca", image_prefix), bca);
+            }
         }
         // compare physical structures to stored to make sure it's the same disc
         else if(!options.force_refine)
@@ -825,16 +841,6 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                     throw_line("disc / file physical structure mismatch, refining from a different disc?");
             }
         }
-    }
-
-    if(dump_mode == DumpMode::DUMP && readable_formats.find(READ_DISC_STRUCTURE_Format::BCA) != readable_formats.end())
-    {
-        std::vector<uint8_t> bca;
-        auto status = cmd_read_disc_structure(*ctx.sptd, bca, ctx.disc_type == DiscType::BLURAY || ctx.disc_type == DiscType::BLURAY_R, 0, 0, READ_DISC_STRUCTURE_Format::BCA, 0);
-        if(status.status_code)
-            LOG("warning: failed to read disc burst cutting area, SCSI ({})", SPTD::StatusMessage(status));
-        else
-            write_vector(std::format("{}.bca", image_prefix), bca);
     }
 
     // authenticate CSS
