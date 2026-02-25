@@ -60,7 +60,7 @@ public:
             return;
 
         os << "  BCA:" << std::endl;
-        os << std::format("{}", hexdump(bca.data(), _WII_REPORTED_BCA_OFFSET, _WII_REPORTED_BCA_SIZE));
+        os << std::format("{}", rawhexdump(&bca[_WII_REPORTED_BCA_OFFSET], _WII_REPORTED_BCA_SIZE));
     }
 
 private:

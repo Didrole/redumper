@@ -59,7 +59,7 @@ public:
             return;
 
         os << "  BCA:" << std::endl;
-        os << std::format("{}", hexdump(bca.data(), _GC_REPORTED_BCA_OFFSET, _GC_REPORTED_BCA_SIZE));
+        os << std::format("{}", rawhexdump(&bca[_GC_REPORTED_BCA_OFFSET], _GC_REPORTED_BCA_SIZE));
     }
 
 private:
