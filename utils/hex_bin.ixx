@@ -127,6 +127,9 @@ export std::string rawhexdump(const uint8_t *data, uint32_t size, uint32_t group
         ss << std::setw(2) << (uint32_t)data[i];
     }
 
+    if(size > 0)
+        ss << std::endl;
+
     return ss.str();
 }
 
