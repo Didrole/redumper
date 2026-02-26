@@ -213,6 +213,26 @@ std::vector<uint32_t> get_bluray_layer_lengths(const std::vector<uint8_t> &struc
     return layer_lengths;
 }
 
+bool bluray_contains_bca(const std::vector<uint8_t> &structure, bool rom)
+{
+    auto di_units = &structure[sizeof(CMD_ParameterListHeader)];
+    uint32_t unit_size = sizeof(READ_DISC_STRUCTURE_DiscInformationUnit) + (rom ? 52 : 100);
+    for(uint32_t j = 0; j < 32; ++j)
+    {
+        auto &unit = (READ_DISC_STRUCTURE_DiscInformationUnit &)di_units[j * unit_size];
+        std::string identifier((char *)unit.header.identifier, sizeof(unit.header.identifier));
+        if(identifier != "DI")
+            break;
+
+        if(unit.header.format == 1)
+        {
+            auto body = (READ_DISC_STRUCTURE_DiscInformationBody1 *)unit.body;
+            return body->bca;
+        }
+    }
+
+    return false;
+}
 
 void print_physical_structure(const READ_DVD_STRUCTURE_LayerDescriptor &layer_descriptor, uint32_t layer)
 {
