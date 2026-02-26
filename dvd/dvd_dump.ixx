@@ -685,7 +685,8 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                     if(structure[sizeof(CMD_ParameterListHeader)] == 0xFF)
                         nintendo_key = 0;
 
-                    has_bca = layer_descriptor.bca;
+                    if(i == 0)
+                        has_bca = layer_descriptor.bca;
                 }
 
                 // XGD physical sector count is only for video partition
