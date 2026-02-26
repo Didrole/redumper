@@ -821,9 +821,7 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
             if(has_bca)
             {
                 if(!readable_formats.contains(READ_DISC_STRUCTURE_Format::BCA))
-                {
                     LOG("warning: this drive does not support reading the burst cutting area");
-                }
                 else
                 {
                     std::vector<uint8_t> bca;
