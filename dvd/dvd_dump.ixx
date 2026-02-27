@@ -790,15 +790,6 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                     }
                 }
             }
-
-            // get and store the bca
-            if(readable_formats.contains(READ_DISC_STRUCTURE_Format::BCA))
-            {
-                std::vector<uint8_t> bca;
-                auto status = cmd_read_disc_structure(*ctx.sptd, bca, ctx.disc_type == DiscType::BLURAY || ctx.disc_type == DiscType::BLURAY_R, 0, 0, READ_DISC_STRUCTURE_Format::BCA, 0);
-                if(!status.status_code)
-                    write_vector(std::format("{}.bca", image_prefix), bca);
-            }
         }
         // compare physical structures to stored to make sure it's the same disc
         else if(!options.force_refine)
@@ -813,6 +804,15 @@ export bool redumper_dump_dvd(Context &ctx, const Options &options, DumpMode dum
                     throw_line("disc / file physical structure mismatch, refining from a different disc?");
             }
         }
+    }
+
+    // get and store the bca
+    if(dump_mode == DumpMode::DUMP && readable_formats.find(READ_DISC_STRUCTURE_Format::BCA) != readable_formats.end())
+    {
+        std::vector<uint8_t> bca;
+        auto status = cmd_read_disc_structure(*ctx.sptd, bca, ctx.disc_type == DiscType::BLURAY || ctx.disc_type == DiscType::BLURAY_R, 0, 0, READ_DISC_STRUCTURE_Format::BCA, 0);
+        if(!status.status_code)
+            write_vector(std::format("{}.bca", image_prefix), bca);
     }
 
     // authenticate CSS
